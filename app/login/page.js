@@ -20,7 +20,6 @@ const Login = () => {
 
       // Store the token in cookies
       const token = response.data.token;
-      console.log(process.env.NEXT_PUBLIC_HELLO);
       setCookie(null, 'token', token, { path: '/' });
 
       toast.success('Login successful!', {

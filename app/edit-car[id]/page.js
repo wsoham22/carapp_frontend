@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -15,7 +17,6 @@ const EditCar = ({ params }) => {
   const router = useRouter();
   const { id } = params;
 
-  // Function to get cookie by name
   const getCookie = (name) => {
     const cookies = parseCookies();
     return cookies[name] || null;
@@ -24,11 +25,9 @@ const EditCar = ({ params }) => {
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const token = getCookie('token'); // Get token from cookies
-
+        const token = getCookie('token');
         if (!token) {
-          console.log('No token found, redirecting to login.');
-          router.push('/'); // Redirect to login if no token
+          router.push('/');
           return;
         }
 
@@ -38,37 +37,31 @@ const EditCar = ({ params }) => {
           },
         });
 
-        setCar(response.data);
-        setCarName(response.data.carName);
-        setPrice(response.data.price);
-        setImageUrl(response.data.imageUrl);
-        setWebsiteUrl(response.data.websiteUrl);
-        setDescription(response.data.description);
+        if (response.data) {
+          setCar(response.data);
+          setCarName(response.data.carName || '');
+          setPrice(response.data.price || '');
+          setImageUrl(response.data.imageUrl || '');
+          setWebsiteUrl(response.data.websiteUrl || '');
+          setDescription(response.data.description || '');
+        } else {
+          throw new Error('No data found');
+        }
       } catch (error) {
         console.error('Error fetching car:', error);
-        toast.error('Error fetching car details.', {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "light",
-        });
+        toast.error('Error fetching car details.');
       }
     };
 
-    fetchCar(); // Ensure this function call is inside useEffect
+    fetchCar();
   }, [id, router]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const token = getCookie('token'); // Get token from cookies
-
+      const token = getCookie('token');
       if (!token) {
-        console.log('No token found, redirecting to login.');
-        router.push('/'); // Redirect to login if no token
+        router.push('/');
         return;
       }
 
@@ -85,31 +78,14 @@ const EditCar = ({ params }) => {
       });
 
       if (response.status === 200) {
-        toast.success('Car updated successfully!', {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "light",
-        });
+        toast.success('Car updated successfully!');
         router.push('/dashboard');
       } else {
-        console.log('Update failed with status:', response.status);
         throw new Error('Update failed');
       }
     } catch (error) {
       console.error('Error updating car:', error);
-      toast.error(`Update failed: ${error.response ? error.response.data.error : 'An error occurred. Please try again.'}`, {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
-      });
+      toast.error(`Update failed: ${error.response ? error.response.data.error : 'An error occurred. Please try again.'}`);
     }
   };
 
@@ -155,19 +131,9 @@ const EditCar = ({ params }) => {
         />
         <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">Update Car</button>
       </form>
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      <ToastContainer />
     </div>
   );
 };
+
 export default EditCar;

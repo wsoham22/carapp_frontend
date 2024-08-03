@@ -1,155 +1,139 @@
-"use client";
-import { useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaEdit, FaTrash } from 'react-icons/fa';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { parseCookies } from 'nookies';
 
-const CarTile = ({ car, onUpdate, onDelete, isAdmin }) => {
-  const { _id, carName, manufacturingYear, price, imageUrl, websiteUrl, description } = car;
-  const [isEditing, setIsEditing] = useState(false);
-  const [updatedCar, setUpdatedCar] = useState({
-    carName,
-    manufacturingYear,
-    price,
-    imageUrl,
-    websiteUrl,
-    description,
-  });
-  const [showDeleteSnackbar, setShowDeleteSnackbar] = useState(false); // State for the snackbar
+const EditCar = ({ params }) => {
+  const [car, setCar] = useState(null);
+  const [carName, setCarName] = useState('');
+  const [price, setPrice] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [description, setDescription] = useState('');
+  const router = useRouter();
+  const { id } = params;
 
-  const handleEdit = async () => {
+  const getCookie = (name) => {
+    const cookies = parseCookies();
+    return cookies[name] || null;
+  };
+
+  useEffect(() => {
+    const fetchCar = async () => {
+      try {
+        const token = getCookie('token');
+        if (!token) {
+          router.push('/');
+          return;
+        }
+
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data) {
+          setCar(response.data);
+          setCarName(response.data.carName || '');
+          setPrice(response.data.price || '');
+          setImageUrl(response.data.imageUrl || '');
+          setWebsiteUrl(response.data.websiteUrl || '');
+          setDescription(response.data.description || '');
+        } else {
+          throw new Error('No data found');
+        }
+      } catch (error) {
+        console.error('Error fetching car:', error);
+        toast.error('Error fetching car details.');
+      }
+    };
+
+    fetchCar();
+  }, [id, router]);
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
     try {
-      await axios.patch(`http://localhost:5000/api/admin/cars/${_id}`, updatedCar, {
+      const token = getCookie('token');
+      if (!token) {
+        router.push('/');
+        return;
+      }
+
+      const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/cars/${id}`, {
+        carName,
+        price,
+        imageUrl,
+        websiteUrl,
+        description,
+      }, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      onUpdate(); // Refresh the car list
-      setIsEditing(false); // Exit edit mode
+
+      if (response.status === 200) {
+        toast.success('Car updated successfully!');
+        router.push('/dashboard');
+      } else {
+        throw new Error('Update failed');
+      }
     } catch (error) {
       console.error('Error updating car:', error);
+      toast.error(`Update failed: ${error.response ? error.response.data.error : 'An error occurred. Please try again.'}`);
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars/${_id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      onDelete(); // Refresh the car list
-      setShowDeleteSnackbar(false); // Close the snackbar
-    } catch (error) {
-      console.error('Error deleting car:', error);
-    }
-  };
-
-  const handleDeleteClick = () => {
-    setShowDeleteSnackbar(true); // Show the confirmation snackbar
-  };
+  if (!car) return <div>Loading...</div>;
 
   return (
-    <div className="border rounded-lg p-4 m-4 bg-white shadow-md flex flex-col items-center">
-      {isEditing ? (
-        <div className="w-full">
-          <input
-            type="text"
-            value={updatedCar.carName}
-            onChange={(e) => setUpdatedCar({ ...updatedCar, carName: e.target.value })}
-            className="border p-2 mb-2 w-full"
-            placeholder="Car Name"
-          />
-          <input
-            type="number"
-            value={updatedCar.manufacturingYear}
-            onChange={(e) => setUpdatedCar({ ...updatedCar, manufacturingYear: e.target.value })}
-            className="border p-2 mb-2 w-full"
-            placeholder="Year"
-          />
-          <input
-            type="number"
-            value={updatedCar.price}
-            onChange={(e) => setUpdatedCar({ ...updatedCar, price: e.target.value })}
-            className="border p-2 mb-2 w-full"
-            placeholder="Price"
-          />
-          <input
-            type="text"
-            value={updatedCar.imageUrl}
-            onChange={(e) => setUpdatedCar({ ...updatedCar, imageUrl: e.target.value })}
-            className="border p-2 mb-2 w-full"
-            placeholder="Image URL"
-          />
-          <input
-            type="text"
-            value={updatedCar.websiteUrl}
-            onChange={(e) => setUpdatedCar({ ...updatedCar, websiteUrl: e.target.value })}
-            className="border p-2 mb-2 w-full"
-            placeholder="Website URL"
-          />
-          <textarea
-            value={updatedCar.description}
-            onChange={(e) => setUpdatedCar({ ...updatedCar, description: e.target.value })}
-            className="border p-2 mb-2 w-full"
-            placeholder="Description"
-          />
-          <button onClick={handleEdit} className="bg-blue-500 text-white p-2 rounded w-full mb-2">
-            Update
-          </button>
-          <button onClick={() => setIsEditing(false)} className="bg-gray-500 text-white p-2 rounded w-full">
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <>
-          <Image
-            src={imageUrl}
-            alt={carName}
-            width={128} // Set appropriate width
-            height={128} // Set appropriate height
-            className="object-cover mb-4"
-          />
-          <h2 className="text-xl font-bold mb-2">{carName}</h2>
-          <p className="text-gray-700 mb-2">Year: {manufacturingYear}</p>
-          <p className="text-gray-700 mb-2">Price: ${price}</p>
-          <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 mb-2">
-            More Details
-          </a>
-          <p className="text-gray-600 mb-4">{description}</p>
-          {isAdmin && (
-            <div className="flex space-x-4">
-              <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700">
-                <FaEdit size={20} />
-              </button>
-              <button onClick={handleDeleteClick} className="text-red-500 hover:text-red-700">
-                <FaTrash size={20} />
-              </button>
-            </div>
-          )}
-        </>
-      )}
-      {/* Snackbar for delete confirmation */}
-      {showDeleteSnackbar && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <p className="text-lg mb-4">Are you sure you want to delete this car item?</p>
-            <div className="flex space-x-4">
-              <button onClick={handleDelete} className="bg-red-500 text-white p-2 rounded w-full">
-                Confirm
-              </button>
-              <button
-                onClick={() => setShowDeleteSnackbar(false)}
-                className="bg-gray-500 text-white p-2 rounded w-full"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="p-4">
+      <h1 className="text-2xl mb-4">Edit Car</h1>
+      <form onSubmit={handleUpdate} className="bg-white p-6 rounded shadow-md">
+        <input
+          type="text"
+          placeholder="Car Name"
+          value={carName}
+          onChange={(e) => setCarName(e.target.value)}
+          className="border p-2 mb-4 w-full"
+        />
+        <input
+          type="number"
+          placeholder="Price"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="border p-2 mb-4 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Image URL"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          className="border p-2 mb-4 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Website URL"
+          value={websiteUrl}
+          onChange={(e) => setWebsiteUrl(e.target.value)}
+          className="border p-2 mb-4 w-full"
+        />
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="border p-2 mb-4 w-full"
+        />
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">Update Car</button>
+      </form>
+      <ToastContainer />
     </div>
   );
 };
 
-export default CarTile;
+export default EditCar;

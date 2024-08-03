@@ -1,21 +1,21 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { parseCookies, destroyCookie } from 'nookies';
 import { useRouter } from 'next/navigation';
-import jwt from 'jsonwebtoken'; // Import jwt for decoding
+import jwt from 'jsonwebtoken';
 import CarTile from '../carTile[id]/page';
-import { FaPlus } from 'react-icons/fa'; // Import FaPlus icon
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
-import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for react-toastify
+import { FaPlus } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Dashboard = () => {
   const [cars, setCars] = useState([]);
   const [carCount, setCarCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false); // State to track admin status
-  const [showAddCarModal, setShowAddCarModal] = useState(false); // State to handle modal visibility
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [newCar, setNewCar] = useState({
     carName: '',
     manufacturingYear: '',
@@ -37,7 +37,7 @@ const Dashboard = () => {
     });
   };
 
-  const fetchCars = async () => {
+  const fetchCars = useCallback(async () => {
     try {
       const cookies = parseCookies();
       const token = cookies.token;
@@ -48,7 +48,7 @@ const Dashboard = () => {
       }
 
       const decoded = jwt.decode(token);
-      setIsAdmin(decoded?.role === 'admin'); // Check if role is admin
+      setIsAdmin(decoded?.role === 'admin');
 
       const config = {
         headers: {
@@ -58,25 +58,30 @@ const Dashboard = () => {
 
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, config);
 
-      setCars(response.data.cars);
-      setCarCount(response.data.carCount);
+      if (response.data && response.data.cars) {
+        setCars(response.data.cars);
+        setCarCount(response.data.carCount);
+      } else {
+        setError('No cars found');
+      }
+
       setLoading(false);
     } catch (error) {
       setError('Error fetching cars');
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchCars();
-  }, []);
+  }, [fetchCars]);
 
   const handleUpdate = () => {
-    fetchCars(); // Refetch the data or update the state directly
+    fetchCars();
   };
 
   const handleDelete = () => {
-    fetchCars(); // Refetch the data or update the state directly
+    fetchCars();
   };
 
   const handleAddCar = async () => {
@@ -90,19 +95,19 @@ const Dashboard = () => {
         },
       };
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars`, newCar, config);
-      setShowAddCarModal(false); // Close the modal
+      setShowAddCarModal(false);
       resetForm();
-      fetchCars(); // Refresh the car list
-      toast.success('Car added successfully!'); // Show success notification
+      fetchCars();
+      toast.success('Car added successfully!');
     } catch (error) {
       console.error('Error adding car:', error);
-      toast.error('Error adding car. Please try again.'); // Show error notification
+      toast.error('Error adding car. Please try again.');
     }
   };
 
   const handleLogout = () => {
-    destroyCookie(null, 'token'); // Remove the token cookie
-    router.push('/login'); // Redirect to login page
+    destroyCookie(null, 'token');
+    router.push('/login');
   };
 
   return (
@@ -134,19 +139,18 @@ const Dashboard = () => {
         <>
           <p className="text-lg mb-4">Total number of cars: {carCount}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {cars.map(car => (
+            {cars.map(car => car ? (
               <CarTile
                 key={car._id}
                 car={car}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}
-                isAdmin={isAdmin} // Pass isAdmin prop
+                isAdmin={isAdmin}
               />
-            ))}
+            ) : null)}
           </div>
         </>
       )}
-      {/* Add Car Modal */}
       {showAddCarModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -207,7 +211,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-      {/* Toast Container */}
       <ToastContainer />
     </div>
   );
