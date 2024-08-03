@@ -19,7 +19,7 @@ const SignUp = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/register`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/register`, {
         username,
         password,
         confirmPassword,

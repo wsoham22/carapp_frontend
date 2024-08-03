@@ -16,7 +16,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/login`, { username, password });
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, { username, password });
 
       // Store the token in cookies
       const token = response.data.token;

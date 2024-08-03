@@ -4,11 +4,10 @@ import axios from 'axios';
 import { parseCookies, destroyCookie } from 'nookies';
 import { useRouter } from 'next/navigation';
 import jwt from 'jsonwebtoken';
-import CarTile from '../components/CarTile'; // Adjust the import path according to your file structure
 import { FaPlus } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import CarDetails from '../carDetail[id]/[id]';
 const Dashboard = () => {
   const [cars, setCars] = useState([]);
   const [carCount, setCarCount] = useState(0);
@@ -56,7 +55,7 @@ const Dashboard = () => {
         },
       };
 
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, config);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard`, config);
 
       if (response.data?.cars) {
         setCars(response.data.cars);
@@ -96,7 +95,7 @@ const Dashboard = () => {
         },
       };
 
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars`, newCar, config);
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/cars`, newCar, config);
       setShowAddCarModal(false);
       resetForm();
       fetchCars();
@@ -144,7 +143,7 @@ const Dashboard = () => {
             {cars.length ? (
               cars.map(car => (
                 car ? (
-                  <CarTile
+                  <CarDetails
                     key={car._id}
                     car={car}
                     onUpdate={handleUpdate}

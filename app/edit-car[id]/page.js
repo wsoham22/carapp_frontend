@@ -31,7 +31,7 @@ const EditCar = ({ params }) => {
           return;
         }
 
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars/${id}`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/cars/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -65,7 +65,7 @@ const EditCar = ({ params }) => {
         return;
       }
 
-      const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/cars/${id}`, {
+      const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/api/cars/${id}`, {
         carName,
         price,
         imageUrl,
