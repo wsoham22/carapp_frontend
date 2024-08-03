@@ -4,7 +4,7 @@ import axios from 'axios';
 import { parseCookies, destroyCookie } from 'nookies';
 import { useRouter } from 'next/navigation';
 import jwt from 'jsonwebtoken';
-import CarTile from '../carTile[id]/page';
+import CarTile from '../components/CarTile'; // Adjust the import path according to your file structure
 import { FaPlus } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -58,7 +58,7 @@ const Dashboard = () => {
 
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, config);
 
-      if (response.data && response.data.cars) {
+      if (response.data?.cars) {
         setCars(response.data.cars);
         setCarCount(response.data.carCount);
       } else {
