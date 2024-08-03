@@ -4,6 +4,8 @@ import axios from 'axios';
 import { parseCookies, destroyCookie } from 'nookies';
 import { useRouter } from 'next/navigation';
 import jwt from 'jsonwebtoken';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FaPlus } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
