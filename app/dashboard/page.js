@@ -67,6 +67,7 @@ const Dashboard = () => {
 
       setLoading(false);
     } catch (error) {
+      console.error('Error fetching cars:', error);
       setError('Error fetching cars');
       setLoading(false);
     }
@@ -139,15 +140,21 @@ const Dashboard = () => {
         <>
           <p className="text-lg mb-4">Total number of cars: {carCount}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {cars.map(car => car ? (
-              <CarTile
-                key={car._id}
-                car={car}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-                isAdmin={isAdmin}
-              />
-            ) : null)}
+            {cars.length ? (
+              cars.map(car => (
+                car ? (
+                  <CarTile
+                    key={car._id}
+                    car={car}
+                    onUpdate={handleUpdate}
+                    onDelete={handleDelete}
+                    isAdmin={isAdmin}
+                  />
+                ) : null
+              ))
+            ) : (
+              <p>No cars available</p>
+            )}
           </div>
         </>
       )}
