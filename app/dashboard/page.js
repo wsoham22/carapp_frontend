@@ -95,6 +95,7 @@ const Dashboard = () => {
           Authorization: `Bearer ${token}`,
         },
       };
+
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars`, newCar, config);
       setShowAddCarModal(false);
       resetForm();
